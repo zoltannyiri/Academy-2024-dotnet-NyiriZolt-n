@@ -1,16 +1,25 @@
-﻿using Academy_2024.Models;
+﻿using Academy_2024.Data;
+using Academy_2024.Models;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Academy_2024.Repositories
 {
     public class UserRepository
     {
-        private static List<User> Users = new List<User> { new User { Id = 1, FirstName = "John", LastName = "Doe" } };
+        private readonly ApplicationDbContext _context;
 
+        public UserRepository()
+        {
+            _context = new ApplicationDbContext();
+        }
 
-        public List<User> GetAll() { return Users; }
+        public List<User> GetAll() { return _context.Users.ToList(); }
 
         public User? GetById(int id)
         {
+            return _context.Users.FirstOrDefault(user => user.Id == id);
+
+            /*
             foreach (var user in Users)
             {
                 if (user.Id == id)
@@ -19,37 +28,45 @@ namespace Academy_2024.Repositories
                 }
             }
             return null;
+            */
         }
 
         public void Create(User data)
         {
-            Users.Add(data);
+            _context.Users.Add(data);
+            _context.SaveChanges();
         }
 
         public User? Update(int id, User data)
         {
-            foreach (var user in Users)
+            var user = _context.Users.FirstOrDefault(user => user.Id == id);
+            if (user != null)
             {
-                if (user.Id == id)
-                {
-                    user.FirstName = data.FirstName;
-                    user.LastName = data.LastName;
-                    return user;
-                }
+                user.FirstName = data.FirstName;
+                user.LastName = data.LastName;
+                //user.Age = data.Age;
+
+                _context.SaveChanges();
+                return user;
             }
+
+            
             return null;
         }
         public bool Delete(int id)
         {
-            foreach (var user in Users)
+
+            var user = _context.Users.FirstOrDefault(user => user.Id == id);
+            if (user != null)
             {
-                if (user.Id == id)
-                {
-                    Users.Remove(user);
-                    return true;
-                }
+                _context.Users.Remove(user);
+                _context.SaveChanges();
+
+                return true;
             }
+    
             return false;
         }
+        
     }
 }
